@@ -3,333 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animated Portrait Letter - Fixed Pocket</title>
+    <title>The Sealed Letter - Animated Portrait with Video</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400..700;1,400..700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
+        .font-serif-vintage { font-family: 'Playfair Display', Georgia, serif; }
+        .font-cursive { font-family: 'Great Vibes', cursive; }
+        .font-sans-ui { font-family: 'Inter', sans-serif; }
+        .perspective-1500 { perspective: 1500px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c2a68f; border-radius: 2px; }
+        .bg-parchment {
+            background-color: #fcf9f2;
+            background-image: radial-gradient(#f3ede0 1px, transparent 0), radial-gradient(#f3ede0 1px, transparent 0);
+            background-size: 8px 8px;
+            background-position: 0 0, 4px 4px;
         }
-
-        body {
-            background-color: #fdfaf5; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Georgia', serif;
-            color: #1a1a1a;
-            overflow: hidden;
+        .portrait-shadow {
+            box-shadow: 0 30px 70px -10px rgba(74, 52, 38, 0.3), 0 0 100px 0px rgba(212, 197, 185, 0.2);
         }
-
-        /* ফুল-স্ক্রিন ভিডিও লেয়ার (ভিডিও শেষ হলে এটি চলে যাবে) */
-        #video-layer {
-            position: fixed;
-            inset: 0;
-            background-color: #1a1a1a;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 1s ease;
+        @keyframes wobble {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.05) rotate(-3deg); }
+            75% { transform: scale(1.05) rotate(3deg); }
         }
-
-        #play-btn {
-            background-color: #cb9b51;
-            border: none;
-            color: white;
-            padding: 16px 36px;
-            font-size: 18px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            border-radius: 50px;
-            font-weight: bold;
-            box-shadow: 0 10px 30px rgba(203, 155, 81, 0.4);
-            transition: transform 0.3s ease;
+        .hover-wobble:hover { animation: wobble 0.6s ease-in-out infinite alternate; }
+        @keyframes floatUp {
+            0% { transform: translateY(100%) scale(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-200px) scale(1) rotate(360deg); opacity: 0; }
         }
-
-        #play-btn:hover {
-            transform: scale(1.05);
-        }
-
-        #birthday-video {
-            display: none;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .outer-frame {
-            background-color: #ffffff; 
-            border: 4px solid #cb9b51; 
-            border-radius: 15px;
-            padding: 40px;
-            width: 90%;
-            max-width: 450px;
-            height: 85vh;
-            max-height: 700px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
-        }
-
-        .sidebar-text {
-            position: absolute;
-            left: 25px;
-            top: 45px;
-            writing-mode: vertical-lr;
-            transform: rotate(180deg);
-            color: #7a7a7a;
-            font-size: 11px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        .sidebar-text .date {
-            margin-top: 10px;
-            color: #aaa;
-            font-style: italic;
-            text-transform: none;
-            letter-spacing: 1px;
-        }
-
-        /* খাম এবং চিঠির মেইন কন্টেইনার */
-        .envelope-wrapper {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            perspective: 1200px;
-            margin-top: 40px;
-        }
-
-        .envelope {
-            position: relative;
-            width: 280px;
-            height: 180px;
-            background-color: #dfd3c3; /* খামের ভেতরের ব্যাকগ্রাউন্ড */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            cursor: pointer;
-        }
-
-        /* ১. খামের ওপরের ফ্ল্যাপ (Top Flap) */
-        .envelope-flap {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 0;
-            height: 0;
-            border-left: 140px solid transparent;
-            border-right: 140px solid transparent;
-            border-top: 100px solid #cfc0ad;
-            transform-origin: top;
-            transition: transform 0.4s ease 0.2s, z-index 0s ease 0.4s;
-            z-index: 4; /* বন্ধ অবস্থায় সবার উপরে থাকবে */
-        }
-
-        /* ২. খামের সামনের পকেট (Front Pocket) - যা চিঠিকে ঢেকে রাখবে */
-        .envelope-pocket {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 0;
-            border-left: 140px solid #dfd3c3;
-            border-right: 140px solid #dfd3c3;
-            border-bottom: 90px solid #d5c8b5;
-            border-top: 90px solid transparent;
-            z-index: 3; /* চিঠির উপরে কিন্তু ফ্ল্যাপের নিচে */
-        }
-
-        /* ৩. ভেতরের চিঠি (Letter) */
-        .letter {
-            position: absolute;
-            bottom: 5px;
-            left: 10px;
-            width: 260px;
-            height: 165px;
-            background-color: #ffffff;
-            padding: 15px;
-            color: #333;
-            font-size: 11px;
-            line-height: 1.5;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
-            /* স্লাইডিং অ্যানিমেশন টাইম */
-            transition: transform 0.5s ease 0s, height 0.5s ease 0s, z-index 0s ease 0.5s;
-            z-index: 2; /* পকেটের পেছনে লুকানো */
-            overflow-y: auto; /* চিঠি বড় হলে স্ক্রোল করার জন্য */
-            border: 1px solid #eaeaea;
-        }
-
-        .letter-title {
-            font-size: 10px;
-            font-weight: bold;
-            letter-spacing: 1.5px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            color: #111;
-        }
-
-        /* খামের বাইরের "Forever Yours" টেক্সট */
-        .envelope-text {
-            position: absolute;
-            right: 20px;
-            bottom: 15px;
-            font-family: 'Brush Script MT', cursive, sans-serif;
-            font-size: 18px;
-            color: #6e6151;
-            z-index: 5; /* টেক্সট যেন পকেটের উপরে দেখা যায় */
-            transition: opacity 0.3s ease;
-        }
-
-        /* --- খোলা অবস্থায় অ্যানিমেশন স্টেটস --- */
-        
-        /* ফ্ল্যাপটি ওপরে উল্টে যাবে */
-        .envelope.open .envelope-flap {
-            transform: rotateX(180deg);
-            z-index: 1; /* খোলার পর পেছনে চলে যাবে */
-            transition: transform 0.4s ease, z-index 0s ease 0.2s;
-        }
-
-        /* চিঠিটি পকেট থেকে ওপরে স্লাইড করবে */
-        .envelope.open .letter {
-            transform: translateY(-110px); /* ওপরে উঠে আসবে */
-            height: 230px; /* চিঠি বড় হবে */
-            z-index: 5; /* পকেট এবং ফ্ল্যাপের উপরে চলে আসবে */
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s, height 0.6s ease 0.3s, z-index 0s ease 0.3s;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
-        }
-
-        /* খাম খুললে বাইরের টেক্সট হাইড হবে */
-        .envelope.open .envelope-text {
-            opacity: 0;
-        }
-
-        /* নিচের বাটন এরিয়া */
-        .bottom-section {
-            text-align: center;
-            width: 100%;
-        }
-
-        .action-btn {
-            background-color: transparent;
-            border: 2px solid #cb9b51;
-            color: #cb9b51;
-            padding: 12px 28px;
-            font-size: 11px;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            margin-bottom: 15px;
-            min-width: 180px;
-            font-weight: bold;
-        }
-
-        .action-btn:hover {
-            background-color: #cb9b51;
-            color: #ffffff;
-        }
-
-        .hint-text {
-            color: #999;
-            font-size: 10px;
-            letter-spacing: 1px;
-        }
+        .particle { position: absolute; pointer-events: none; animation: floatUp 3s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
     </style>
 </head>
-<body>
+<body class="bg-[#f3ede4] text-[#4a3a2a] min-h-screen font-sans-ui flex flex-col justify-between overflow-x-hidden relative">
 
-    <div id="video-layer">
-        <button id="play-btn">🎉 ওপেন করো বোন 🎉</button>
-        <video id="birthday-video" playsinline>
+    <div id="video-layer" class="fixed inset-0 bg-[#1a1a1a] z-[9999] flex flex-col items-center justify-center transition-opacity duration-1000">
+        <button id="play-btn" class="bg-[#8c6f56] hover:bg-[#725a44] text-white px-8 py-4 rounded-full text-base font-bold tracking-widest uppercase shadow-xl transition-transform duration-300 hover:scale-105">
+            🎉 ওপেন করো বোন 🎉
+        </button>
+        <video id="birthday-video" class="hidden w-full h-full object-contain" playsinline>
             <source src="birthday_video.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
 
-    <div class="outer-frame">
-        
-        <div class="sidebar-text">
-            Zaynab Roshni
-            <div class="date">July 05, 2026</div>
-        </div>
+    <div class="absolute inset-0 bg-[radial-gradient(#d4c5b9_1px,transparent_1px)] [background-size:16px_16px] opacity-30 pointer-events-none z-0"></div>
 
-        <div class="envelope-wrapper">
-            <div class="envelope" id="envelope">
-                <div class="envelope-flap"></div>
-                <div class="letter">
-                    <div class="letter-title">MY DEAR SISTER,</div>
-                    <p>Happy birthday to my sister and favorite notification!. Even though miles separate us and we connect across a screen, you truly feel like real to me. You're the one I trust, laugh with, and share all my random updates with. I hope your special day is filled with endless joy, and I honestly can’t wait for the day we finally get to meet in real life!. I pray your life is filled with joy, all your wishes come true, and you stay blessed and happy always. Have an amazing birthday, sis! 🎂✨</p>
-                </div>
-                <div class="envelope-pocket"></div>
-                <div class="envelope-text">Your Brother</div>
+    <header class="w-full px-6 py-4 flex justify-between items-center z-10 border-b border-[#e2d6c9] bg-[#fbf9f5]/80 backdrop-blur-md">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-[#8c6f56] flex items-center justify-center text-[#fbf9f5]">
+                <i data-lucide="mail-open" class="w-4.5 h-4.5"></i>
+            </div>
+            <div>
+                <h1 class="text-xs tracking-[0.2em] uppercase font-semibold text-[#8c6f56]">Zaynab Roshni</h1>
+                <p class="text-[10px] text-[#a88f78] -mt-0.5">Happy Birthday Sis! 🎂</p>
             </div>
         </div>
-
-        <div class="bottom-section">
-            <button class="action-btn" id="actionBtn">Break Seal & Open</button>
-            <div class="hint-text" id="hintText">Click anywhere on the envelope or use the action button above</div>
+        <div class="flex items-center gap-3">
+            <button id="btn-sound" class="p-2 rounded-full border border-[#d4c5b9] hover:bg-[#f3ede4] transition text-[#6d513b] flex items-center gap-1.5 text-xs font-medium">
+                <i id="sound-icon" data-lucide="volume-2" class="w-4 h-4"></i>
+                <span class="hidden sm:inline" id="sound-text">Sound: ON</span>
+            </button>
         </div>
+    </header>
 
-    </div>
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6 md:py-10 flex flex-col items-center justify-center z-10">
+        <div class="w-full max-w-[460px] aspect-[3/4] bg-[#faf8f4] p-5 md:p-7 rounded-2xl border-[14px] border-[#3e2e23] ring-4 ring-[#d4af37]/60 shadow-2xl relative flex flex-col items-center justify-between overflow-hidden portrait-shadow">
+            
+            <div class="absolute inset-0 border-2 border-[#d4af37]/40 pointer-events-none m-1"></div>
+            <div class="absolute inset-0 border border-[#8c6f56]/10 pointer-events-none m-4"></div>
+            <div class="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#8c6f56]/30 pointer-events-none"></div>
+            <div class="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[#8c6f56]/30 pointer-events-none"></div>
+            <div class="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[#8c6f56]/30 pointer-events-none"></div>
+            <div class="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[#8c6f56]/30 pointer-events-none"></div>
+
+            <div class="text-center z-10 select-none">
+                <span class="text-[9px] tracking-[0.3em] uppercase text-[#a88f78] block">MEMENTO NUMERICUM</span>
+                <span class="text-[11px] font-serif-vintage italic text-[#8c6f56]">July 05, 2026</span>
+            </div>
+
+            <div id="particle-container" class="absolute inset-0 pointer-events-none z-30"></div>
+
+            <div class="flex-1 w-full flex items-center justify-center perspective-1500 py-6">
+                <div id="envelope-wrapper" class="relative w-72 h-48 cursor-pointer select-none transition-transform duration-500 hover:scale-102">
+                    
+                    <div class="absolute inset-0 bg-[#ebdcd0] rounded-b-lg border-b border-x border-[#cbb3a0] shadow-sm z-10">
+                        <div class="absolute inset-0 bg-gradient-to-b from-[#b89b84]/40 to-transparent rounded-b-lg"></div>
+                    </div>
+
+                    <div id="letter-element" class="absolute left-4 right-4 h-56 bg-parchment rounded-sm shadow-md border border-[#e2d2c2] p-4 flex flex-col justify-between transition-all duration-700 ease-in-out z-15 transform translate-y-2 scale-[0.96] origin-bottom opacity-95">
+                        <div class="flex-1 overflow-hidden relative flex flex-col">
+                            <div class="flex justify-between items-start border-b border-[#e9ded2] pb-2 mb-2">
+                                <span class="text-[10px] font-serif-vintage italic text-[#8c6f56] uppercase tracking-wider">MY DEAR SISTER,</span>
+                                <div class="w-8 h-10 border border-dashed border-[#a88f78] rounded p-0.5 bg-white/60 flex items-center justify-center text-[14px]">🎂</div>
+                            </div>
+                            <div class="flex-1 text-[11px] leading-relaxed font-serif-vintage text-[#4a3a2a] custom-scrollbar overflow-y-auto pr-1">Happy birthday to my sister and favorite notification!. Even though miles separate us and we connect across a screen, you truly feel like real to me. You're the one I trust, laugh with, and share all my random updates with. I hope your special day is filled with endless joy, and I honestly can’t wait for the day we finally get to meet in real life!. I pray your life is filled with joy, all your wishes come true, and you stay blessed and happy always. Have an amazing birthday, sis! 🎉✨</div>
+                        </div>
+                        <div class="border-t border-[#e9ded2] pt-1.5 flex justify-between items-end">
+                            <div class="text-[9px] font-serif-vintage tracking-wider text-[#a88f78]">July 05, 2026</div>
+                            <div class="font-cursive text-xl text-[#6d513b] leading-none">Your Brother</div>
+                        </div>
+                    </div>
+
+                    <div class="absolute left-0 bottom-0 top-0 w-1/2 bg-gradient-to-tr from-[#dfcebf] to-[#ebdcd0] border-l border-b border-[#c2aa96] rounded-bl-lg rounded-tl-sm z-20 pointer-events-none" style="clip-path: polygon(0 0, 100% 50%, 0 100%);"></div>
+                    <div class="absolute right-0 bottom-0 top-0 w-1/2 bg-gradient-to-tl from-[#dfcebf] to-[#ebdcd0] border-r border-b border-[#c2aa96] rounded-br-lg rounded-tr-sm z-20 pointer-events-none" style="clip-path: polygon(100% 0, 100% 100%, 0 50%);"></div>
+                    <div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#d9c4b3] to-[#ebdcd0]/90 border-b border-x border-[#c2aa96] rounded-b-lg z-21 pointer-events-none" style="clip-path: polygon(0 100%, 50% 30%, 100% 100%);"></div>
+
+                    <div id="envelope-flap" class="absolute inset-x-0 top-0 h-1/2 bg-[#dfcebf] origin-top transition-transform duration-500 ease-in-out z-25 rounded-t-sm" style="clip-path: polygon(0 0, 50% 100%, 100% 0);">
+                        <div class="absolute inset-0 bg-gradient-to-b from-[#ebdcd0] to-[#cbaea0] opacity-30"></div>
+                    </div>
+
+                    <div id="wax-seal" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[8px] z-35 hover-wobble cursor-pointer transition-all duration-300">
+                        <div class="w-12 h-12 rounded-full bg-[#831f18] shadow-md border-2 border-[#a63026] flex items-center justify-center text-yellow-100/70 select-none relative">
+                            <span class="text-xs font-serif-vintage font-bold">♥</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center z-10 w-full">
+                <button id="btn-interact" class="px-6 py-2 rounded-full bg-[#8c6f56] text-[#faf8f4] hover:bg-[#725a44] active:scale-95 transition-all text-xs font-medium tracking-widest uppercase shadow-md flex items-center gap-2 mx-auto">
+                    <i id="interact-icon" data-lucide="envelope"></i>
+                    <span id="interact-text">Break Seal & Open</span>
+                </button>
+                <p class="text-[10px] text-[#a88f78] mt-2 italic">Click anywhere on the envelope or use the action button</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full text-center py-4 text-[11px] text-[#a88f78] border-t border-[#e2d6c9] bg-[#fbf9f5]/50 z-10">
+        <p>© 2026 Keepsakes of the Digital Era. All rights preserved.</p>
+    </footer>
 
     <script>
-        const envelope = document.getElementById('envelope');
-        const actionBtn = document.getElementById('actionBtn');
-        const hintText = document.getElementById('hintText');
-        
-        // ভিডিও কন্ট্রোল এলিমেন্ট
+        lucide.createIcons();
+        let isOpened = false;
+        let soundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // ভিডিওর কন্ট্রোলসমূহ
         const videoLayer = document.getElementById('video-layer');
         const playBtn = document.getElementById('play-btn');
         const bdayVideo = document.getElementById('birthday-video');
 
-        // বাটনে ক্লিক করলে ভিডিও প্লে হবে
         playBtn.addEventListener('click', () => {
             playBtn.style.display = 'none';
             bdayVideo.style.display = 'block';
             bdayVideo.play().catch(error => {
-                console.log("Video auto-play blocked or failed:", error);
-                // ফ্যালব্যাক: কোনো কারণে ভিডিও ফেইল হলে সরাসরি লেয়ার রিমুভ করে চিঠি দেখাবে
+                console.log("Video block dynamic bypass:", error);
                 videoLayer.style.opacity = '0';
                 setTimeout(() => videoLayer.remove(), 1000);
             });
         });
 
-        // ভিডিও শেষ হলে লেয়ারটি সুন্দরভাবে ভ্যানিশ হয়ে যাবে
         bdayVideo.addEventListener('ended', () => {
             videoLayer.style.opacity = '0';
-            setTimeout(() => {
-                videoLayer.remove();
-            }, 1000);
+            setTimeout(() => { videoLayer.remove(); }, 1000);
         });
 
-        function toggleEnvelope() {
-            envelope.classList.toggle('open');
-            
-            if (envelope.classList.contains('open')) {
-                actionBtn.textContent = 'Reseal & Pack';
-                hintText.textContent = 'Click the button or envelope to close it again';
-            } else {
-                actionBtn.textContent = 'Break Seal & Open';
-                hintText.textContent = 'Click anywhere on the envelope or use the action button above';
+        function playPaperRustle() {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const bufferSize = audioCtx.sampleRate * 0.8;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const noiseNode = audioCtx.createBufferSource();
+            noiseNode.buffer = buffer;
+            const filterNode = audioCtx.createBiquadFilter();
+            filterNode.type = 'bandpass';
+            filterNode.frequency.setValueAtTime(1200, audioCtx.currentTime);
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.7);
+            noiseNode.connect(filterNode);
+            filterNode.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            noiseNode.start();
+        }
+
+        function playWaxSealCrack() {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        const envelopeWrapper = document.getElementById('envelope-wrapper');
+        const envelopeFlap = document.getElementById('envelope-flap');
+        const letterElement = document.getElementById('letter-element');
+        const waxSeal = document.getElementById('wax-seal');
+        const btnInteract = document.getElementById('btn-interact');
+        const interactIcon = document.getElementById('interact-icon');
+        const interactText = document.getElementById('interact-text');
+        const particleContainer = document.getElementById('particle-container');
+
+        function createSparkles() {
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.backgroundColor = '#d4af37';
+                particle.style.width = `${Math.random() * 5 + 3}px`;
+                particle.style.height = particle.style.width;
+                const rect = envelopeWrapper.getBoundingClientRect();
+                const containerRect = particleContainer.getBoundingClientRect();
+                particle.style.left = `${(rect.left - containerRect.left) + rect.width / 2}px`;
+                particle.style.top = `${(rect.top - containerRect.top) + rect.height / 2}px`;
+                particle.style.animationDuration = `${Math.random() * 1.5 + 1}s`;
+                particleContainer.appendChild(particle);
+                particle.addEventListener('animationend', () => particle.remove());
             }
         }
 
-        envelope.addEventListener('click', toggleEnvelope);
-        actionBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            toggleEnvelope();
+        function toggleEnvelope() {
+            if (!isOpened) {
+                isOpened = true;
+                playWaxSealCrack();
+                createSparkles();
+                waxSeal.style.transform = 'translate(-50%, -120px) scale(0.9)';
+                waxSeal.style.opacity = '0';
+                envelopeFlap.style.transform = 'rotateX(180deg)';
+                envelopeFlap.style.zIndex = '5';
+                setTimeout(() => {
+                    playPaperRustle();
+                    letterElement.style.transform = 'translateY(-120px) scale(0.98)';
+                    letterElement.style.zIndex = '30';
+                    setTimeout(() => { letterElement.style.transform = 'translateY(-30px) scale(1.05)'; }, 350);
+                }, 300);
+                interactIcon.setAttribute('data-lucide', 'mailbox');
+                interactText.innerText = "Reseal & Pack";
+            } else {
+                isOpened = false;
+                playPaperRustle();
+                letterElement.style.transform = 'translateY(-120px) scale(0.98)';
+                setTimeout(() => {
+                    letterElement.style.zIndex = '15';
+                    letterElement.style.transform = 'translateY(8px) scale-[0.96]';
+                    setTimeout(() => {
+                        envelopeFlap.style.zIndex = '25';
+                        envelopeFlap.style.transform = 'rotateX(0deg)';
+                        setTimeout(() => {
+                            playWaxSealCrack();
+                            waxSeal.style.transform = 'translate(-50%, -8px) scale(1)';
+                            waxSeal.style.opacity = '1';
+                        }, 250);
+                    }, 200);
+                }, 350);
+                interactIcon.setAttribute('data-lucide', 'envelope');
+                interactText.innerText = "Break Seal & Open";
+            }
+            lucide.createIcons();
+        }
+
+        envelopeWrapper.addEventListener('click', (e) => {
+            if (e.target.closest('#wax-seal') || !isOpened || e.target.closest('#letter-element')) {
+                toggleEnvelope();
+            }
+        });
+        btnInteract.addEventListener('click', toggleEnvelope);
+
+        document.getElementById('btn-sound').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-text').innerText = soundEnabled ? "Sound: ON" : "Sound: OFF";
+            document.getElementById('sound-icon').setAttribute('data-lucide', soundEnabled ? "volume-2" : "volume-x");
+            lucide.createIcons();
         });
     </script>
-
 </body>
 </html>
