@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Portrait Letter - Fixed Pocket</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #fdfaf5; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Georgia', serif;
+            color: #1a1a1a;
+            overflow: hidden;
+        }
+
+        .outer-frame {
+            background-color: #ffffff; 
+            border: 4px solid #cb9b51; 
+            border-radius: 15px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            height: 85vh;
+            max-height: 700px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-text {
+            position: absolute;
+            left: 25px;
+            top: 45px;
+            writing-mode: vertical-lr;
+            transform: rotate(180deg);
+            color: #7a7a7a;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .sidebar-text .date {
+            margin-top: 10px;
+            color: #aaa;
+            font-style: italic;
+            text-transform: none;
+            letter-spacing: 1px;
+        }
+
+        /* খাম এবং চিঠির মেইন কন্টেইনার */
+        .envelope-wrapper {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            perspective: 1200px;
+            margin-top: 40px;
+        }
+
+        .envelope {
+            position: relative;
+            width: 280px;
+            height: 180px;
+            background-color: #dfd3c3; /* খামের ভেতরের ব্যাকগ্রাউন্ড */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        /* ১. খামের ওপরের ফ্ল্যাপ (Top Flap) */
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 140px solid transparent;
+            border-right: 140px solid transparent;
+            border-top: 100px solid #cfc0ad;
+            transform-origin: top;
+            transition: transform 0.4s ease 0.2s, z-index 0s ease 0.4s;
+            z-index: 4; /* বন্ধ অবস্থায় সবার উপরে থাকবে */
+        }
+
+        /* ২. খামের সামনের পকেট (Front Pocket) - যা চিঠিকে ঢেকে রাখবে */
+        .envelope-pocket {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 140px solid #dfd3c3;
+            border-right: 140px solid #dfd3c3;
+            border-bottom: 90px solid #d5c8b5;
+            border-top: 90px solid transparent;
+            z-index: 3; /* চিঠির উপরে কিন্তু ফ্ল্যাপের নিচে */
+        }
+
+        /* ৩. ভেতরের চিঠি (Letter) */
+        .letter {
+            position: absolute;
+            bottom: 5px;
+            left: 10px;
+            width: 260px;
+            height: 165px;
+            background-color: #ffffff;
+            padding: 15px;
+            color: #333;
+            font-size: 11px;
+            line-height: 1.5;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            /* স্লাইডিং অ্যানিমেশন টাইম */
+            transition: transform 0.5s ease 0s, height 0.5s ease 0s, z-index 0s ease 0.5s;
+            z-index: 2; /* পকেটের পেছনে লুকানো */
+            overflow: hidden;
+            border: 1px solid #eaeaea;
+        }
+
+        .letter-title {
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            color: #111;
+        }
+
+        /* খামের বাইরের "Forever Yours" টেক্সট */
+        .envelope-text {
+            position: absolute;
+            right: 20px;
+            bottom: 15px;
+            font-family: 'Brush Script MT', cursive, sans-serif;
+            font-size: 18px;
+            color: #6e6151;
+            z-index: 5; /* টেক্সট যেন পকেটের উপরে দেখা যায় */
+            transition: opacity 0.3s ease;
+        }
+
+        /* --- খোলা অবস্থায় অ্যানিমেশন স্টেটস --- */
+        
+        /* ফ্ল্যাপটি ওপরে উল্টে যাবে */
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1; /* খোলার পর পেছনে চলে যাবে */
+            transition: transform 0.4s ease, z-index 0s ease 0.2s;
+        }
+
+        /* চিঠিটি পকেট থেকে ওপরে স্লাইড করবে */
+        .envelope.open .letter {
+            transform: translateY(-110px); /* ওপরে উঠে আসবে */
+            height: 230px; /* চিঠি বড় হবে */
+            z-index: 5; /* পকেট এবং ফ্ল্যাপের উপরে চলে আসবে */
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s, height 0.6s ease 0.3s, z-index 0s ease 0.3s;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* খাম খুললে বাইরের টেক্সট হাইড হবে */
+        .envelope.open .envelope-text {
+            opacity: 0;
+        }
+
+        /* নিচের বাটন এরিয়া */
+        .bottom-section {
+            text-align: center;
+            width: 100%;
+        }
+
+        .action-btn {
+            background-color: transparent;
+            border: 2px solid #cb9b51;
+            color: #cb9b51;
+            padding: 12px 28px;
+            font-size: 11px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            min-width: 180px;
+            font-weight: bold;
+        }
+
+        .action-btn:hover {
+            background-color: #cb9b51;
+            color: #ffffff;
+        }
+
+        .hint-text {
+            color: #999;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="outer-frame">
+        
+        <div class="sidebar-text">
+            Zaynab Roshni
+            <div class="date">July 05, 2026</div>
+        </div>
+
+        <div class="envelope-wrapper">
+            <div class="envelope" id="envelope">
+                <!-- খামের পার্টসগুলো (লেয়ারিং ঠিক করা হয়েছে) -->
+                <div class="envelope-flap"></div>
+                <div class="letter">
+                    <div class="letter-title">MY DEAR SISTER,</div>
+                    <p>Happy birthday to my sister and favorite notification!. Even though miles separate us and we connect across a screen, you truly feel like real to me. You're the one I trust, laugh with, and share all my random updates with. I hope your special day is filled with endless joy, and I honestly can’t wait for the day we finally get to meet in real life!. I pray your life is filled with joy, all your wishes come true, and you stay blessed and happy always. Have an amazing birthday, sis! 🎂✨</p>
+                </div>
+                <div class="envelope-pocket"></div>
+                <div class="envelope-text">Your Brother</div>
+            </div>
+        </div>
+
+        <div class="bottom-section">
+            <button class="action-btn" id="actionBtn">Break Seal & Open</button>
+            <div class="hint-text" id="hintText">Click anywhere on the envelope or use the action button above</div>
+        </div>
+
+    </div>
+
+    <script>
+        const envelope = document.getElementById('envelope');
+        const actionBtn = document.getElementById('actionBtn');
+        const hintText = document.getElementById('hintText');
+
+        function toggleEnvelope() {
+            envelope.classList.toggle('open');
+            
+            if (envelope.classList.contains('open')) {
+                actionBtn.textContent = 'Reseal & Pack';
+                hintText.textContent = 'Click the button or envelope to close it again';
+            } else {
+                actionBtn.textContent = 'Break Seal & Open';
+                hintText.textContent = 'Click anywhere on the envelope or use the action button above';
+            }
+        }
+
+        envelope.addEventListener('click', toggleEnvelope);
+        actionBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            toggleEnvelope();
+        });
+    </script>
+
+</body>
+</html>
