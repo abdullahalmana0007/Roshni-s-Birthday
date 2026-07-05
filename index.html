@@ -23,6 +23,45 @@
             overflow: hidden;
         }
 
+        /* ফুল-স্ক্রিন ভিডিও লেয়ার (ভিডিও শেষ হলে এটি চলে যাবে) */
+        #video-layer {
+            position: fixed;
+            inset: 0;
+            background-color: #1a1a1a;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s ease;
+        }
+
+        #play-btn {
+            background-color: #cb9b51;
+            border: none;
+            color: white;
+            padding: 16px 36px;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(203, 155, 81, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        #play-btn:hover {
+            transform: scale(1.05);
+        }
+
+        #birthday-video {
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
         .outer-frame {
             background-color: #ffffff; 
             border: 4px solid #cb9b51; 
@@ -92,7 +131,7 @@
             border-top: 100px solid #cfc0ad;
             transform-origin: top;
             transition: transform 0.4s ease 0.2s, z-index 0s ease 0.4s;
-            z-index: 4; /* বন্ধ অবস্থায় সবার উপরে থাকবে */
+            z-index: 4; /* বন্ধ অবস্থায় সবার উপরে থাকবে */
         }
 
         /* ২. খামের সামনের পকেট (Front Pocket) - যা চিঠিকে ঢেকে রাখবে */
@@ -125,7 +164,7 @@
             /* স্লাইডিং অ্যানিমেশন টাইম */
             transition: transform 0.5s ease 0s, height 0.5s ease 0s, z-index 0s ease 0.5s;
             z-index: 2; /* পকেটের পেছনে লুকানো */
-            overflow: hidden;
+            overflow-y: auto; /* চিঠি বড় হলে স্ক্রোল করার জন্য */
             border: 1px solid #eaeaea;
         }
 
@@ -146,11 +185,11 @@
             font-family: 'Brush Script MT', cursive, sans-serif;
             font-size: 18px;
             color: #6e6151;
-            z-index: 5; /* টেক্সট যেন পকেটের উপরে দেখা যায় */
+            z-index: 5; /* টেক্সট যেন পকেটের উপরে দেখা যায় */
             transition: opacity 0.3s ease;
         }
 
-        /* --- খোলা অবস্থায় অ্যানিমেশন স্টেটস --- */
+        /* --- খোলা অবস্থায় অ্যানিমেশন স্টেটস --- */
         
         /* ফ্ল্যাপটি ওপরে উল্টে যাবে */
         .envelope.open .envelope-flap {
@@ -162,7 +201,7 @@
         /* চিঠিটি পকেট থেকে ওপরে স্লাইড করবে */
         .envelope.open .letter {
             transform: translateY(-110px); /* ওপরে উঠে আসবে */
-            height: 230px; /* চিঠি বড় হবে */
+            height: 230px; /* চিঠি বড় হবে */
             z-index: 5; /* পকেট এবং ফ্ল্যাপের উপরে চলে আসবে */
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s, height 0.6s ease 0.3s, z-index 0s ease 0.3s;
             box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
@@ -173,7 +212,7 @@
             opacity: 0;
         }
 
-        /* নিচের বাটন এরিয়া */
+        /* নিচের বাটন এরিয়া */
         .bottom-section {
             text-align: center;
             width: 100%;
@@ -209,6 +248,14 @@
 </head>
 <body>
 
+    <div id="video-layer">
+        <button id="play-btn">🎉 ওপেন করো বোন 🎉</button>
+        <video id="birthday-video" playsinline>
+            <source src="birthday_video.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
     <div class="outer-frame">
         
         <div class="sidebar-text">
@@ -218,7 +265,6 @@
 
         <div class="envelope-wrapper">
             <div class="envelope" id="envelope">
-                <!-- খামের পার্টসগুলো (লেয়ারিং ঠিক করা হয়েছে) -->
                 <div class="envelope-flap"></div>
                 <div class="letter">
                     <div class="letter-title">MY DEAR SISTER,</div>
@@ -240,6 +286,31 @@
         const envelope = document.getElementById('envelope');
         const actionBtn = document.getElementById('actionBtn');
         const hintText = document.getElementById('hintText');
+        
+        // ভিডিও কন্ট্রোল এলিমেন্ট
+        const videoLayer = document.getElementById('video-layer');
+        const playBtn = document.getElementById('play-btn');
+        const bdayVideo = document.getElementById('birthday-video');
+
+        // বাটনে ক্লিক করলে ভিডিও প্লে হবে
+        playBtn.addEventListener('click', () => {
+            playBtn.style.display = 'none';
+            bdayVideo.style.display = 'block';
+            bdayVideo.play().catch(error => {
+                console.log("Video auto-play blocked or failed:", error);
+                // ফ্যালব্যাক: কোনো কারণে ভিডিও ফেইল হলে সরাসরি লেয়ার রিমুভ করে চিঠি দেখাবে
+                videoLayer.style.opacity = '0';
+                setTimeout(() => videoLayer.remove(), 1000);
+            });
+        });
+
+        // ভিডিও শেষ হলে লেয়ারটি সুন্দরভাবে ভ্যানিশ হয়ে যাবে
+        bdayVideo.addEventListener('ended', () => {
+            videoLayer.style.opacity = '0';
+            setTimeout(() => {
+                videoLayer.remove();
+            }, 1000);
+        });
 
         function toggleEnvelope() {
             envelope.classList.toggle('open');
